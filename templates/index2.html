@@ -68,25 +68,25 @@
           <li class="dropdown user user-menu">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
               <img src="{{ url_for('static', filename='dist/img/user2-160x160.jpg')}}" class="user-image" alt="User Image">
-              <span class="hidden-xs">Alexander Pierce</span>
+              <span class="hidden-xs">Felix Kok</span>
             </a>
             <ul class="dropdown-menu">
               <!-- User image -->
               <li class="user-header">
                 <img src="{{ url_for('static', filename='dist/img/user2-160x160.jpg')}}" class="img-circle" alt="User Image">
-                <p>
-                  Alexander Pierce - Web Developer
-                  <small>Member since Nov. 2012</small>
+                <p id="car_model_username">
+                  Felix Kok -- Ford Focus
                 </p>
+                <small style="color: white;">Member since Jan. 2020</small>
               </li>
               <!-- Menu Body -->
               <li class="user-body">
                 <div class="row">
                   <div class="col-xs-4 text-center">
-                    <a href="#">Followers</a>
+                    <a href="#myModal" data-target="#myModal" data-toggle="modal">Change Car Type</a>
                   </div>
                   <div class="col-xs-4 text-center">
-                    <a href="#">Sales</a>
+                    <a href="#">Driving History</a>
                   </div>
                   <div class="col-xs-4 text-center">
                     <a href="#">Friends</a>
@@ -122,6 +122,17 @@
         
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
+
+    <section class="content-header">
+      <h1>
+        Search for Efficient Routes
+      </h1>
+      <ol class="breadcrumb">
+        <li><a href="#"><i class="fa fa-search-dollar"></i> Home</a></li>
+        <li class="active">Search for Efficient Routes</li>
+      </ol>
+    </section>
+
     <!-- Main content -->
     <section class="content">
       <!-- Main row -->
@@ -186,6 +197,32 @@
   </footer>
 </div>
 <!-- ./wrapper -->
+
+
+<div id="myModal" class="modal fade a" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Change Car Type</h4>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-lg-3">
+            <button onclick="changeCarModel('Ford Focus')"> Ford Focus</button>
+          </div>
+          <div class="col-lg-3">
+            <button onclick="changeCarModel('Tesla X')"> Tesla X</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- jQuery 3 -->
 <script src="{{ url_for('static', filename='bower_components/jquery/dist/jquery.min.js')}}"></script>
@@ -308,8 +345,11 @@ ending_location_textbox
     }
 });
 
-
-
+function changeCarModel(car_model_text){
+  console.log(car_model_text)
+  $("#car_model_username")[0].textContent = "Felix Kok -- " + car_model_text;
+  $("#myModal").modal("hide");
+}
 
 </script>
 
