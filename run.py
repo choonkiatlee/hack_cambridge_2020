@@ -1,16 +1,27 @@
 from flask import Flask, render_template, request, url_for
+from flask_cors import CORS
 
 import random, json
 import pandas as pd
 import numpy as np
 import glob
+import routes
+
 M=4000
 A=181.4
 B=2.42
 C=0.62
 
-
 app = Flask(__name__)
+CORS(app)
+
+@app.route('/get_route', methods=['GET'])
+def get_route():
+    if 'query' not in request.args:
+        return '400'
+    res = routes.get_route_from_api(request.args)
+    return res
+    
 
 @app.route('/',  methods=['GET'])
 def form():
@@ -29,6 +40,10 @@ def form():
 @app.route('/acceleration',  methods=['GET'])
 def acceleration():
     return render_template('index2.html')
+
+@app.route('/felix',  methods=['GET'])
+def felix():
+    return render_template('index2_felix.html')
 
 def get_aggression(velocities):
     res = [aggressive(i) for i in velocities]
@@ -71,4 +86,5 @@ if __name__ == '__main__':
             fuel = list(np.array(veh1["Vehicle Speed[km/h]"]))
             vel_arr.append(list(vel))
             fuel_cons.append(list(np.array(fuel)/np.mean(vel)))
-    app.run(debug=True)
+
+    app.run('0.0.0.0',debug=True)
