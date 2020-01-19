@@ -247,6 +247,7 @@ var map;
 var ending_location_textbox = document.getElementById("ending_location_textbox");
 var start_place = null;
 var end_place = null;
+var depart_time = null;
 
 gmap = new google.maps.Map(document.getElementById('gmaps'), {
     center: cambridge,
@@ -279,8 +280,11 @@ $(document).ready(function(){
     $('input.timepicker').timepicker({
       change: function(time) {
           $('input.timepicker + i')[0].style.visibility="visible";
+        //   depart_time = new Date();
+          depart_time = time;
         },
-      defaultTime: new Date().getTime() + 15 * 1000 //15 minutes,
+      defaultTime: new Date().getTime() + 15 * 1000, //15 minutes,
+    //   startTime: new Date(),
     });
 });
 
@@ -327,10 +331,10 @@ InitMap();
 
 
 function onSearchClick(){
-    console.log("Hello");
     // var startPosition = [start_place.geometry.location.lat(), start_place.geometry.location.lng()];
     // var endPosition = [end_place.geometry.location.lat(), end_place.geometry.location.lng()];
-    updateRoute(start_place, end_place);
+    // today = new Date();
+    updateRoute(start_place, end_place, moment(depart_time));
 }
 
 window.onload = function(){

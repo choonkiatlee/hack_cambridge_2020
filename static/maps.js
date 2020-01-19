@@ -1,7 +1,8 @@
 var map, datasource;
 var routePoints = [];
 const speed_to_consumption = "10,15:20,13.5:28,7.5:35,7.4:40,5.7:45,5.7:55,5.8:61,5.1:68,5.3:73,5.5:78,5.8:90,6.1:101,6.3:110,7.5:120,8.5:130,9.8:135,9.9:140,10:148,10.15:155,10.35:165,11.3:180,15.6:185,16.3"
-var routeUrl = "http://172.20.3.14:5000/get_route?query={query}&routeType={routeType}"
+var routeUrl = "http://172.20.3.14:5000/get_route?query={query}&routeType={routeType}&departAt=&departAt=2020-01-20T09:30:00-00:00"
+
 
 function InitMap() {
     //Initialize a map instance.
@@ -21,13 +22,6 @@ function InitMap() {
     map.events.add('ready', function () {
         datasource = new atlas.source.DataSource();
         map.sources.add(datasource);
-
-        // map.layers.add(new atlas.layer.LineLayer(datasource, null, {
-        //     strokeColor: '#2272B9',
-        //     strokeWidth: 10,
-        //     lineJoin: 'round',
-        //     lineCap: 'round'
-        // }), 'labels');
 
         map.layers.add(new atlas.layer.LineLayer(datasource, null, {
             strokeColor: ['get', 'strokeColor'],
@@ -50,9 +44,8 @@ function InitMap() {
     });
 }
 
-function updateRoute(startPosition, endPosition) {
+function updateRoute(startPosition, endPosition, depart_time) {
     datasource.clear();
-    console.log('updating')
     var subscriptionKeyCredential = new atlas.service.SubscriptionKeyCredential(atlas.getSubscriptionKey());
     var pipeline = atlas.service.MapsURL.newPipeline(subscriptionKeyCredential);
     routeURL = new atlas.service.RouteURL(pipeline);
@@ -64,7 +57,7 @@ function updateRoute(startPosition, endPosition) {
 
     var startPoint = new atlas.data.Feature(new atlas.data.Point([startLng, startLat]), {
         title: startPosition.name,
-        icon: "pin-black"
+        icon: "pin-round-darkblue"
     });
 
     var endPoint = new atlas.data.Feature(new atlas.data.Point([endLng, endLat]), {
@@ -75,21 +68,21 @@ function updateRoute(startPosition, endPosition) {
     datasource.add([startPoint, endPoint]);
 
     var coordinates = startLat + ',' + startLng + ':' + endLat + ',' + endLng;
-    console.log(coordinates)
-
+    // var dt_str = depart_time.format('YYYY-MM-DD') + 'T' + depart_time.format('HH:mm:ss') + '-00:00'
+    // console.log(dt_str)
     // eco route
     var requestUrl = routeUrl.replace('{routeType}', 'eco').replace('{query}', coordinates);
-
+    
     fetch(requestUrl)
-        .then(function(response){
-            return response.json();
-        }).then(function(response){
-            console.log(response)
-            addRouteToMap(response.routes[0], 'green', 4)
-        });
+    .then(function(response){
+        return response.json();
+    }).then(function(response){
+        console.log(response)
+        addRouteToMap(response.routes[0], 'green', 4)
+    });
     
     // fastest route
-    var requestUrl = routeUrl.replace('{routeType}', 'fastest').replace('{query}', coordinates);
+    var requestUrl = routeUrl.replace('{routeType}', 'eco').replace('{query}', coordinates);
     
     fetch(requestUrl)
         .then(function(response){
