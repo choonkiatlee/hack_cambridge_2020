@@ -203,7 +203,7 @@ a:focus {
   -o-transition: margin-left 0.3s ease-in-out;
   transition: margin-left 0.3s ease-in-out;
   margin-bottom: 0;
-  margin-left: 230px;
+  margin-left: 0px;
   border: none;
   min-height: 50px;
   border-radius: 0;
@@ -625,7 +625,7 @@ a:focus {
     display: none;
   }
   .sidebar-mini.sidebar-collapse .main-header .navbar {
-    margin-left: 50px;
+    margin-left: 0px;
   }
 }
 .sidebar-mini:not(.sidebar-mini-expand-feature).sidebar-collapse .sidebar-menu > li:hover > a > span:not(.pull-right),
@@ -633,7 +633,7 @@ a:focus {
   display: block !important;
   position: absolute;
   width: 180px;
-  left: 50px;
+  left: 0px;
 }
 .sidebar-mini:not(.sidebar-mini-expand-feature).sidebar-collapse .sidebar-menu > li:hover > a > span {
   top: 0;
@@ -645,7 +645,7 @@ a:focus {
   position: relative !important;
   float: right;
   width: auto !important;
-  left: 180px !important;
+  left: 10px !important;
   top: -22px !important;
   z-index: 900;
 }
