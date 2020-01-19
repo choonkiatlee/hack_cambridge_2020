@@ -7,7 +7,7 @@ function InitMap() {
     //Initialize a map instance.
     map = new atlas.Map('myMap', {
         center: [0.121817, 52.205338],
-        zoom: 7,
+        zoom: 12,
         view: 'Auto',
 
         //Add your Azure Maps subscription key to the map SDK. Get an Azure Maps key at https://azure.com/maps
@@ -21,61 +21,17 @@ function InitMap() {
     map.events.add('ready', function () {
         datasource = new atlas.source.DataSource();
         map.sources.add(datasource);
-    });
-}
 
-// function updateRoute(startPosition, endPosition) {
-    
-// }
+        // map.layers.add(new atlas.layer.LineLayer(datasource, null, {
+        //     strokeColor: '#2272B9',
+        //     strokeWidth: 10,
+        //     lineJoin: 'round',
+        //     lineCap: 'round'
+        // }), 'labels');
 
-function GetMap() {
-    //Initialize a map instance.
-    map = new atlas.Map('myMap', {
-        center: [0.121817, 52.205338],
-        zoom: 7,
-        view: 'Auto',
-
-        //Add your Azure Maps subscription key to the map SDK. Get an Azure Maps key at https://azure.com/maps
-        authOptions: {
-            authType: 'subscriptionKey',
-            subscriptionKey: 'YvYcKRHulGRybPNdgcEm2mwY5F4eS195WvB5O5fOV2g'
-        }
-    });
-
-    //Use SubscriptionKeyCredential with a subscription key
-    var subscriptionKeyCredential = new atlas.service.SubscriptionKeyCredential(atlas.getSubscriptionKey());
-
-    //Use subscriptionKeyCredential to create a pipeline
-    var pipeline = atlas.service.MapsURL.newPipeline(subscriptionKeyCredential);
-
-    // Construct the RouteURL object
-    routeURL = new atlas.service.RouteURL(pipeline);
-
-    //Wait until the map resources are ready.
-    map.events.add('ready', function () {
-        datasource = new atlas.source.DataSource();
-        map.sources.add(datasource);
-
-        //Create the GeoJSON objects which represent the start and end points of the route.
-        var startPoint = new atlas.data.Feature(new atlas.data.Point([0.121817, 52.205338]), {
-            title: "Christ's College, Cambridge",
-            icon: "pin-round-blue"
-        });
-
-        var endPoint = new atlas.data.Feature(new atlas.data.Point([0.1274, 51.50743]), {
-            title: "London",
-            icon: "pin-blue"
-        });
-
-        //Add the data to the data source.
-        datasource.add([startPoint, endPoint]);
-
-        //Create a layer for rendering the route line under the road labels.
         map.layers.add(new atlas.layer.LineLayer(datasource, null, {
-            strokeColor: '#2272B9',
-            strokeWidth: 10,
-            lineJoin: 'round',
-            lineCap: 'round'
+            strokeColor: ['get', 'strokeColor'],
+            strokeWidth: ['get', 'strokeWidth']
         }), 'labels');
 
         //Create a layer for rendering the start and end points of the route as symbols.
@@ -91,34 +47,80 @@ function GetMap() {
             },
             filter: ['any', ['==', ['geometry-type'], 'Point'], ['==', ['geometry-type'], 'MultiPoint']] //Only render Point or MultiPoints in this layer.
         }));
+    });
+}
 
-        //Get the coordnates of the start and end points.
-        var coordinates = [
-            startPoint.geometry.coordinates,
-            endPoint.geometry.coordinates
-        ];
+function updateRoute(startPosition, endPosition) {
+    datasource.clear();
+    console.log('updating')
+    var subscriptionKeyCredential = new atlas.service.SubscriptionKeyCredential(atlas.getSubscriptionKey());
+    var pipeline = atlas.service.MapsURL.newPipeline(subscriptionKeyCredential);
+    routeURL = new atlas.service.RouteURL(pipeline);
 
-        calculateRouteDirectionsOptions = {
-            traffic: true,
-            travelMode: 'car',
-            routeType: 'fastest',
-            // vehicleEngineType: 'combustion',
-            // constantSpeedConsumptionInLitersPerHundredkm: 50,
-            // fuelEnergyDensityInMJoulesPerLiter: 34.2
-        }
+    startLat = startPosition.geometry.location.lat();
+    startLng = startPosition.geometry.location.lng();
+    endLat = endPosition.geometry.location.lat();
+    endLng = endPosition.geometry.location.lng();
 
-        //Calculate a route.
-        routeURL.calculateRouteDirections(atlas.service.Aborter.timeout(10000), coordinates, calculateRouteDirectionsOptions).then((directions) => {
-            //Get the route data as GeoJSON and add it to the data source.
-            var data = directions.geojson.getFeatures();
-            console.log(directions)
-            datasource.add(data);
+    var startPoint = new atlas.data.Feature(new atlas.data.Point([startLng, startLat]), {
+        title: startPosition.name,
+        icon: "pin-black"
+    });
 
-            //Update the map view to center over the route.
-            map.setCamera({
-                bounds: data.bbox,
-                padding: 30 //Add a padding to account for the pixel size of symbols.
-            });
+    var endPoint = new atlas.data.Feature(new atlas.data.Point([endLng, endLat]), {
+        title: endPosition.name,
+        icon: "pin-red"
+    });
+
+    datasource.add([startPoint, endPoint]);
+
+    var coordinates = startLat + ',' + startLng + ':' + endLat + ',' + endLng;
+    console.log(coordinates)
+
+    // eco route
+    var requestUrl = routeUrl.replace('{routeType}', 'eco').replace('{query}', coordinates);
+
+    fetch(requestUrl)
+        .then(function(response){
+            return response.json();
+        }).then(function(response){
+            console.log(response)
+            addRouteToMap(response.routes[0], 'green', 4)
         });
+    
+    // fastest route
+    var requestUrl = routeUrl.replace('{routeType}', 'fastest').replace('{query}', coordinates);
+    
+    fetch(requestUrl)
+        .then(function(response){
+            return response.json();
+        }).then(function(response){
+            addRouteToMap(response.routes[0], '#FF5733', 6)
+        });
+}
+
+
+function addRouteToMap(route, strokeColor, strokeWidth){
+    var routeCoordinates = [];
+        
+    for (var legIndex = 0; legIndex < route.legs.length; legIndex++) {
+        var leg = route.legs[legIndex];
+
+        var legCoordinates = leg.points.map(function(point) {
+            return [point.longitude, point.latitude];
+        });
+
+        routeCoordinates = routeCoordinates.concat(legCoordinates);
+    }
+
+    datasource.add(new atlas.data.Feature(new atlas.data.LineString(routeCoordinates), {
+        strokeColor: strokeColor,
+        strokeWidth: strokeWidth
+    }));
+
+    routePoints = routePoints.concat(routeCoordinates);
+    map.setCamera({
+        bounds: atlas.data.BoundingBox.fromPositions(routePoints),
+        padding: 50
     });
 }
