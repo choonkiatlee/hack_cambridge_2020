@@ -124,7 +124,7 @@
   </nav>  -->
         
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper">
+  <div class="content-wrapper" style="min-height: 300px;">
     <!-- Main content -->
     <section class="content">
       <!-- Main row -->
@@ -158,7 +158,7 @@
               </div> -->
             </div>
             <div class="row" style="text-align: center;">
-              <button type="button" class="btn btn-default" id="sendEmail" style="margin-bottom: 20px;">Search!</button>
+              <button type="button" class="btn btn-default" style="margin-bottom: 20px;" id="onSearchClickBtn">Search!</button>
             </div>
           </div>
           
@@ -172,6 +172,8 @@
           <div class="box box-success box-header" style="height: 400px;" id="myMap">
           </div>
         </section>
+
+        <div class="box box-success box-header" style="height: 400px; visibility: hidden;" id="gmaps"></div>
         <!-- right col -->
       </div>
       <!-- /.row (main row) -->
@@ -219,9 +221,9 @@
 <!-- FastClick -->
 <script src="{{ url_for('static', filename='bower_components/fastclick/lib/fastclick.js')}}"></script>
 <!-- AdminLTE App -->
-<script src="{{ url_for('static', filename='dist/js/adminlte.min.js')}}"></script>
+<!-- <!-- <script src="{{ url_for('static', filename='dist/js/adminlte.min.js')}}"></script> --> -->
 <!-- AdminLTE for demo purposes -->
-<script src="{{ url_for('static', filename='dist/js/demo.js')}}"></script>
+<!-- <!-- <script src="{{ url_for('static', filename='dist/js/demo.js')}}"></script> --> -->
 
 <!-- Add a reference to the Azure Maps Services Module JavaScript file. -->
 <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRjNxHYiMlqpNxR0sWG629Y9pmqRrKLZQ&libraries=places"></script>
@@ -232,12 +234,108 @@
 
 <script src="https://atlas.microsoft.com/sdk/javascript/mapcontrol/2/atlas.min.js"></script>
 
-<!-- Add a reference to the Azure Maps Services Module JavaScript file. -->
 <script src="https://atlas.microsoft.com/sdk/javascript/service/2/atlas-service.min.js"></script>
 
 <script>
 
+var map;
+  var service;
+  var infowindow;
+  var cambridge = new google.maps.LatLng(52.203810, 0.120114);
+
+  var starting_location_textbox = document.getElementById("starting_location_textbox");
+var ending_location_textbox = document.getElementById("ending_location_textbox");
+var start_place = null;
+var end_place = null;
+
+gmap = new google.maps.Map(document.getElementById('gmaps'), {
+    center: cambridge,
+    zoom: 15
+});
+
+function search_start_location_callback(results, status) {
+    if (status == google.maps.places.PlacesServiceStatus.OK) {
+        for (var i = 0; i < results.length; i++) {
+        var place = results[i];
+        start_place = place;
+        }
+        console.log(start_place);
+        document.getElementById("starting_location_textbox").value = place.name;
+    }
+}
+
+function search_end_location_callback(results, status) {
+    if (status == google.maps.places.PlacesServiceStatus.OK) {
+        for (var i = 0; i < results.length; i++) {
+        var place = results[i];
+        end_place = place;
+        }
+        document.getElementById("ending_location_textbox").value = place.name;
+    }
+}
+
+
+$(document).ready(function(){
+    $('input.timepicker').timepicker({
+      change: function(time) {
+          $('input.timepicker + i')[0].style.visibility="visible";
+        },
+      defaultTime: new Date().getTime() + 15 * 1000 //15 minutes,
+    });
+});
+
+function request_start_place_from_gmaps(search_query){
+  var request = {
+    query: search_query,
+    fields: ['name', 'geometry'],
+  };
+  service = new google.maps.places.PlacesService(gmap);
+  service.findPlaceFromQuery(request, search_start_location_callback);
+}
+
+function request_end_place_from_gmaps(search_query){
+  var request = {
+    query: search_query,
+    fields: ['name', 'geometry'],
+  };
+  service = new google.maps.places.PlacesService(gmap);
+  service.findPlaceFromQuery(request, search_end_location_callback);
+}
+
+starting_location_textbox
+    .addEventListener("keyup", function(event) {
+    event.preventDefault();
+    if (event.keyCode === 13) {
+      console.log(starting_location_textbox.value);
+      request_start_place_from_gmaps(starting_location_textbox.value);
+      document.getElementById("starting_location_checkbox").style.visibility = "visible";
+    }
+});
+
+ending_location_textbox
+    .addEventListener("keyup", function(event) {
+    event.preventDefault();
+    if (event.keyCode === 13) {
+      console.log(ending_location_textbox.value);
+      request_end_place_from_gmaps(ending_location_textbox.value);
+      document.getElementById("ending_location_checkbox").style.visibility = "visible";
+      console.log(end_place);
+    }
+});
+
 InitMap();
+
+
+function onSearchClick(){
+    console.log("Hello");
+    // var startPosition = [start_place.geometry.location.lat(), start_place.geometry.location.lng()];
+    // var endPosition = [end_place.geometry.location.lat(), end_place.geometry.location.lng()];
+    updateRoute(start_place, end_place);
+}
+
+window.onload = function(){
+    $('#onSearchClickBtn').click(onSearchClick);
+}
 
 </script>
 
