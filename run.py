@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for
+from flask import Flask, render_template, request, url_for, jsonify
 from flask_cors import CORS
 
 import random, json
@@ -11,6 +11,9 @@ M=4000
 A=181.4
 B=2.42
 C=0.62
+
+v = []
+a = []
 
 app = Flask(__name__)
 CORS(app)
@@ -45,9 +48,24 @@ def acceleration():
 def felix():
     return render_template('index2_felix.html')
 
+@app.route("/get_aggressive_update")
+def get_aggressive_update():
+    current_v = float(request.args["current_v"])
+    current_a = float(request.args["current_a"])
+    v.append(current_v)
+    a.append(current_a)
+    return jsonify( {"aggressive":aggressive_w_accel(v,a)} )
+
 def get_aggression(velocities):
     res = [aggressive(i) for i in velocities]
     return res
+
+def aggressive_w_accel(v, a):
+
+    a,v = np.array(a), np.array(v)
+    av=a*v
+    agg=abs((1/M)*((A*v.sum()+B*(v**2).sum()+C*(v**3).sum()+M*av.sum())/v.sum())*(8.9/np.mean(v)))
+    return np.round(agg * 20, decimals=2)
 
 def aggressive(v):
     v = np.array(v)
